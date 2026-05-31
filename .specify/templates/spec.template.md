@@ -22,6 +22,8 @@
 
 **Acceptance Scenarios**:
 
+> Each scenario names a concrete **subject** (`the service`, `the web UI` — never "it"), a reproducible **trigger** in the *When*, and an **observable response** in the *Then* (status code, body, persisted state, UI element). One trigger, one response per scenario. No "handles gracefully" / "works correctly".
+
 1. **Given** [initial state], **When** [action], **Then** [expected outcome]
 2. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
@@ -45,6 +47,8 @@
 
 ### Edge Cases
 
+> Frame each as EARS unwanted-behavior: `If <bad condition>, System MUST <defined response>`.
+
 - [Boundary condition or error scenario]
 - [Boundary condition or error scenario]
 
@@ -52,7 +56,14 @@
 
 ### Functional Requirements
 
-> Write each requirement in **EARS** notation: `System MUST <response>` (ubiquitous), `When <trigger>, System MUST <response>` (event-driven), or `If <bad condition>, System MUST <defined response>` (unwanted-behavior).
+> Write each requirement in **EARS** notation, using **MUST** consistently throughout this document (the EARS "shall" — pick one verb and don't mix):
+> - `System MUST <response>` — **ubiquitous** (invariant always true)
+> - `When <trigger>, System MUST <response>` — **event-driven** (most requirements)
+> - `While <state>, System MUST <response>` — **state-driven** (conditional on a sustained state)
+> - `If <bad condition>, System MUST <defined response>` — **unwanted-behavior** (error/failure cases)
+> - `Where <feature is present>, System MUST <response>` — **optional-feature** (config/build variant)
+>
+> Name a concrete subject and an observable, measurable response. One requirement per statement — split any "and" joining two distinct outcomes.
 
 - **FR-001**: System MUST [capability].
 - **FR-002**: Users MUST be able to [interaction].
