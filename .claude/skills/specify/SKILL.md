@@ -1,8 +1,8 @@
 ---
 name: specify
-description: manual invoke
-disable-model-invocation: true  
-user-invocable: true 
+description: Turn a feature brief into a reviewable spec.md by populating the project's spec template — runs a structured interview, prioritizes INVEST user stories, and writes EARS / Given-When-Then acceptance criteria. Manually invoked as a step in the spec-driven-development flow, after specs-scaffold and before plan.
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Specify skill
@@ -103,9 +103,11 @@ Given/When/Then is the scenario-flavored rendering of the **EARS** event-driven 
 
 Self-check: can you picture the test that proves this scenario? "Then the system handles it gracefully" is not a test — rewrite. For error-shaped scenarios, use the EARS unwanted-behavior pattern (*If `<bad condition>`, then the `<system>` shall `<defined response>`*) as the underlying shape. The full set of EARS patterns and when to use each is in [references/user-stories.md](references/user-stories.md).
 
-### Step 8 — Write functional requirements
+### Step 8 — Capture edge cases, then write functional requirements
 
-Number them **FR-001, FR-002, ...** sequentially. Each is a MUST statement, technology-agnostic. The MUST patterns below are the EARS notation expressed in this template's vocabulary — see [references/user-stories.md](references/user-stories.md#ears) for the full mapping (ubiquitous / event-driven / state-driven / unwanted-behavior / optional-feature).
+**First, fill the template's `Edge Cases` section.** The *edge cases* angle you triaged in Step 5b (empty input, malformed input, concurrent access, boundary values, partial failure) lands here — don't let it evaporate. Write each as an EARS unwanted-behavior bullet: `If <bad condition>, System MUST <defined response>`. Every error-shaped acceptance scenario you wrote in Step 7 should have a matching edge-case entry. If the feature genuinely has no edge cases worth stating, remove the section rather than leaving the placeholders.
+
+Then write the functional requirements. Number them **FR-001, FR-002, ...** sequentially. Each is a MUST statement, technology-agnostic. The MUST patterns below are the EARS notation expressed in this template's vocabulary — see [references/user-stories.md](references/user-stories.md#ears) for the full mapping (ubiquitous / event-driven / state-driven / unwanted-behavior / optional-feature).
 
 Patterns to use:
 
@@ -133,7 +135,7 @@ Copy the structure of `.specify/templates/spec.template.md` to `specs/<folder>/s
 | Placeholder | Fill with |
 |---|---|
 | `[FEATURE NAME]` | Title-cased feature name derived from the folder slug |
-| `[###-feature-name]` | Folder number + kebab-cased slug (e.g. `001-url-shortener`) |
+| `[###-feature-name]` | The git branch `specs-scaffold` created for this spec — `feature/<slug>_spec` (snake_case, e.g. `feature/url_shortener_spec`). This must match the actual branch, not a kebab ID. |
 | `[DATE]` | Today's date in `YYYY-MM-DD` |
 | `"$ARGUMENTS"` | The user's original brief, verbatim |
 | Story/edge/FR/SC placeholders | Concrete content from Steps 5–9 |
