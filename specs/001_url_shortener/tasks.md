@@ -94,7 +94,7 @@
 
 ## T-12 — Build + run end-to-end deploy smoke
 
-- [ ] **Executed** — tick when `T-12`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-12`'s acceptance test passes and the work is committed
 - **Files touched:** `package.json` (scripts), `README.md`
 - **Acceptance test:** manual — `npm run build && npm start`, then `curl -i` a create request, capture the code, `curl -i` the code and observe `301` + correct `Location`; reload the page and confirm the link persists
 - **Depends on:** T-11
