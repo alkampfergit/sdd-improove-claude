@@ -30,7 +30,7 @@
 
 ## T-04 — DB: connection + schema migration
 
-- [ ] **Executed** — tick when `T-04`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-04`'s acceptance test passes and the work is committed
 - **Files touched:** `src/db/db.js`, `test/db.test.js`
 - **Acceptance test:** `test/db.test.js` — `openDb(':memory:')` creates the `links` table with `short_code` PRIMARY KEY, `target_url NOT NULL UNIQUE`, and `created_at` default; `migrate` is idempotent (safe to run twice)
 - **Depends on:** T-01
