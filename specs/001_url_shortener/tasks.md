@@ -46,7 +46,7 @@
 
 ## T-06 — Service: createLink (validate → normalize → dedup → mint → retry)
 
-- [ ] **Executed** — tick when `T-06`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-06`'s acceptance test passes and the work is committed
 - **Files touched:** `src/service/links-service.js`, `test/service.test.js`
 - **Acceptance test:** `test/service.test.js` — valid URL mints a code and persists one row; an invalid/non-`http(s)` URL throws a validation error and persists nothing; submitting the same (or normalization-equal) URL twice returns the identical code with exactly one stored row; an injected forced collision triggers regenerate-and-retry
 - **Depends on:** T-02, T-03, T-05
@@ -54,7 +54,7 @@
 
 ## T-07 — Service: resolveCode + listLinks
 
-- [ ] **Executed** — tick when `T-07`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-07`'s acceptance test passes and the work is committed
 - **Files touched:** `src/service/links-service.js`, `test/service.test.js`
 - **Acceptance test:** `test/service.test.js` — `resolveCode` returns the stored target for an existing code and a not-found result for a missing or malformed code; `listLinks` returns all entries and an empty list when none exist
 - **Depends on:** T-06 (sequential by design — shares `src/service/links-service.js` and `test/service.test.js` with T-06)
