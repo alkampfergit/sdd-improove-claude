@@ -78,7 +78,7 @@
 
 ## T-10 — Server entry point + static SPA serving
 
-- [ ] **Executed** — tick when `T-10`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-10`'s acceptance test passes and the work is committed
 - **Files touched:** `src/server.js`, `package.json` (`start` script)
 - **Acceptance test:** `test/api.test.js` (extended) — wiring `openDb(DB_PATH)` → service → `createApp` boots without error; a create-then-resolve round trip succeeds against a real on-disk throwaway DB, and the mapping survives reopening the DB
 - **Depends on:** T-08, T-09
