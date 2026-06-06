@@ -46,6 +46,8 @@ Read every task in `tasks.md` and extract, for each:
 
 Already-checked (`- [x]`) tasks are done — skip them, but keep them in the model because later tasks depend on them. The checkbox is the single source of truth for progress; trust it, and never re-run or re-commit a task that's already ticked.
 
+When several tasks name the **same test file** (e.g. T-02 and T-03 both cite `test/core.test.js`), record the *specific* assertions that belong to each task, not the file as a whole. The file grows task by task: after T-02 it holds T-02's cases; T-03 adds its own. So in Step 4a, "the test exists" means *this task's* assertions exist — not that the whole file is complete.
+
 Cross-check the `Depends on` lines against the `## Dependency graph` block at the bottom of `tasks.md`. If they disagree, the task list is internally inconsistent — surface it to the user before executing, because a wrong dependency means a wrong build order.
 
 ### Step 3 — Compute and report the parallelism waves
@@ -54,14 +56,16 @@ Before implementing anything, analyze the graph and show the user the **executio
 
 Two tasks are **parallel-safe** when **both** hold:
 
-1. **No dependency between them** — neither is in the other's transitive `Depends on` set.
-2. **Disjoint files** — their `Files touched` sets do not overlap. Tasks that share a file (even logically independent ones — `tasks.md` flags these as "sequential by design — shares X") must be serialized to avoid clobbering each other.
+1. **No dependency between them** — neither is in the other's transitive `Depends on` set. The `Depends on` lines are the **single source of truth** for ordering. A "sequential by design — shares `<file>`" note that some tasks carry is *not* a separate rule to parse — it's just the tasks-author's explanation of why that `Depends on` entry exists. Trust the `Depends on` line; the comment is commentary.
+2. **Disjoint files** — their `Files touched` sets do not overlap. This is a **safety net** on top of rule 1: it catches two tasks the dependency graph leaves concurrent that nonetheless write the same file, where running them together would clobber each other. (In a well-formed `tasks.md` the author has usually already converted such cases into an explicit `Depends on` edge — so this rule mostly confirms the graph rather than overriding it. It exists for the case where they didn't.)
 
 Compute waves greedily, Kahn-style:
 
 - **Wave 1** = every pending task whose dependencies are all already executed (ticked, or completed earlier in this run).
 - Within that ready set, drop any task that shares a file with another task already placed in the wave; defer it to a later wave. The result is a conflict-free batch.
 - Mark those tasks executed, recompute the ready set, and form the next wave. Repeat until every pending task is placed.
+
+The goal is **a valid, conflict-free wave ordering** that exposes the critical path — not a provably maximum-width packing. Greedy is sufficient; don't agonize over whether a different tie-break would widen a wave by one. The waves are a map for the human, and the skill executes serially regardless.
 
 Present the waves as a short list — wave number, the task IDs in it, and a one-line "why these are independent" (or "serial: shares `<file>` with `T-NN`"). Call out the **critical path** (the longest dependency chain) since that's the real floor on completion.
 
