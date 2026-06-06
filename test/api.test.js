@@ -1,10 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import request from 'supertest';
 import { openDb, closeDb } from '../src/db/db.js';
 import { createLinksRepository } from '../src/db/links-repo.js';
 import { createLinksService } from '../src/service/links-service.js';
 import { createApp } from '../src/http/app.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const testDbPath = path.join(__dirname, '..', 'test-db-temp.db');
 
 test('HTTP API - POST /api/links', async (t) => {
   let db;
@@ -289,5 +296,64 @@ test('HTTP API - GET / SPA', async (t) => {
 
   await t.test('cleanup', () => {
     closeDb(db);
+  });
+});
+
+test('Server integration - real disk DB persistence', async (t) => {
+  let dbPath;
+
+  await t.test('cleanup old test database', () => {
+    if (fs.existsSync(testDbPath)) {
+      fs.unlinkSync(testDbPath);
+    }
+  });
+
+  await t.test('create link with real on-disk database', async () => {
+    dbPath = testDbPath;
+
+    const db = openDb(dbPath);
+    const repo = createLinksRepository(db);
+    const service = createLinksService(repo);
+    const app = createApp({ service });
+
+    const response = await request(app)
+      .post('/api/links')
+      .send({ url: 'https://persistence-test.com' });
+
+    assert.strictEqual(response.status, 201);
+    const code = response.body.code;
+    assert.ok(code);
+
+    // Verify it can be resolved
+    const resolveResponse = await request(app)
+      .get(`/${code}`);
+
+    assert.strictEqual(resolveResponse.status, 301);
+
+    closeDb(db);
+  });
+
+  await t.test('reopen database and verify persistence', async () => {
+    // Reopen the database
+    const db = openDb(testDbPath);
+    const repo = createLinksRepository(db);
+    const service = createLinksService(repo);
+    const app = createApp({ service });
+
+    // List links to verify it persisted
+    const response = await request(app)
+      .get('/api/links');
+
+    assert.strictEqual(response.status, 200);
+    assert.strictEqual(response.body.length, 1);
+    assert.strictEqual(response.body[0].url, 'https://persistence-test.com/');
+
+    closeDb(db);
+  });
+
+  await t.test('cleanup test database', () => {
+    if (fs.existsSync(testDbPath)) {
+      fs.unlinkSync(testDbPath);
+    }
   });
 });

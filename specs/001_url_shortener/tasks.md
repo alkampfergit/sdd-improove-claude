@@ -70,7 +70,7 @@
 
 ## T-09 — HTTP: GET /:code redirect, GET /api/links, SPA catch-all
 
-- [ ] **Executed** — tick when `T-09`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-09`'s acceptance test passes and the work is committed
 - **Files touched:** `src/http/app.js`, `test/api.test.js`
 - **Acceptance test:** `test/api.test.js` (supertest) — requesting an issued code returns 301 with `Location` equal to the stored target and writes nothing; both an **unknown** code (code-shaped, no row) and a **malformed** code (chars/length outside the alphabet) return 404 with no redirect; `GET /api/links` returns 200 with both created links (and `[]` when empty); `GET /` serves the SPA `index.html`
 - **Depends on:** T-07, T-08 (sequential by design — shares `src/http/app.js` and `test/api.test.js` with T-08)
