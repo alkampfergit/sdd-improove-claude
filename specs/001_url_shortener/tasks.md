@@ -22,7 +22,7 @@
 
 ## T-03 — Core: short-code generation + validation
 
-- [ ] **Executed** — tick when `T-03`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-03`'s acceptance test passes and the work is committed
 - **Files touched:** `src/core/code.js`, `test/core.test.js`
 - **Acceptance test:** `test/core.test.js` — `generateCode()` returns a 7-char string over `[A-Za-z0-9]`; `isValidCode` accepts code-shaped strings and rejects wrong length / out-of-alphabet chars; a large batch of draws yields no duplicates
 - **Depends on:** T-02 (sequential by design — shares `test/core.test.js` with T-02)
