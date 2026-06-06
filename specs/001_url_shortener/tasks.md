@@ -62,7 +62,7 @@
 
 ## T-08 — HTTP: app factory + POST /api/links
 
-- [ ] **Executed** — tick when `T-08`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-08`'s acceptance test passes and the work is committed
 - **Files touched:** `src/http/app.js`, `test/api.test.js`
 - **Acceptance test:** `test/api.test.js` (supertest) — POST a valid URL returns 201 with `{ code, shortUrl, url }` and `code.length === 7`; an invalid/missing/non-`http(s)` URL returns 400 `{ error }` and persists nothing; reposting the same URL returns the existing code (200, no second row)
 - **Depends on:** T-06

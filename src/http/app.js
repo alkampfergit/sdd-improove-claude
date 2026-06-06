@@ -35,9 +35,35 @@ export function createApp({ service, staticDir }) {
     }
   });
 
-  // GET /:code — redirect (will be added in T-09)
-  // GET /api/links — list links (will be added in T-09)
-  // GET / and static SPA (will be added in T-09)
+  // GET /api/links — list all links
+  app.get('/api/links', (req, res) => {
+    const links = service.listLinks();
+    res.json(links);
+  });
+
+  // GET / — serve SPA
+  app.get('/', (req, res) => {
+    if (staticDir) {
+      res.sendFile('index.html', { root: staticDir });
+    } else {
+      res.send('<html><body>URL Shortener</body></html>');
+    }
+  });
+
+  // GET /:code — redirect (hot path, no write)
+  // This route owns every single-segment path not matched above
+  // Both unknown and malformed codes return 404
+  app.get('/:code', (req, res) => {
+    const { code } = req.params;
+
+    const result = service.resolveCode(code);
+    if (!result.found) {
+      return res.status(404).send('Not found');
+    }
+
+    // 301 permanent redirect
+    res.redirect(301, result.targetUrl);
+  });
 
   return app;
 }
