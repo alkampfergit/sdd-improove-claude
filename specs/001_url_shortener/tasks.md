@@ -14,7 +14,7 @@
 
 ## T-02 — Core: URL validation + normalization
 
-- [ ] **Executed** — tick when `T-02`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-02`'s acceptance test passes and the work is committed
 - **Files touched:** `src/core/url.js`, `test/core.test.js`
 - **Acceptance test:** `test/core.test.js` — `validateUrl` accepts `http`/`https`, rejects missing/empty/non-string, non-`http(s)` scheme, and `> 4000` chars; `normalizeUrl` lowercases scheme+host, strips default ports, collapses trailing slash while preserving path/query verbatim
 - **Depends on:** T-01

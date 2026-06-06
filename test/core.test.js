@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { validateUrl, normalizeUrl } from '../src/core/url.js';
+import { generateCode, isValidCode, CODE_ALPHABET, CODE_LENGTH } from '../src/core/code.js';
 
 test('URL validation - validateUrl', async (t) => {
   await t.test('accepts valid http URL', () => {
@@ -127,5 +128,78 @@ test('URL normalization - normalizeUrl', async (t) => {
     const url1 = normalizeUrl('https://Example.Com/page');
     const url2 = normalizeUrl('https://example.com/page');
     assert.strictEqual(url1, url2);
+  });
+});
+
+test('Short-code generation - generateCode', async (t) => {
+  await t.test('returns a string', () => {
+    const code = generateCode();
+    assert.strictEqual(typeof code, 'string');
+  });
+
+  await t.test('returns exactly 7 characters', () => {
+    const code = generateCode();
+    assert.strictEqual(code.length, CODE_LENGTH);
+  });
+
+  await t.test('uses only alphabet characters', () => {
+    for (let i = 0; i < 100; i++) {
+      const code = generateCode();
+      for (const char of code) {
+        assert(CODE_ALPHABET.includes(char), `Character ${char} not in alphabet`);
+      }
+    }
+  });
+
+  await t.test('generates no duplicates in large batch', () => {
+    const codes = new Set();
+    const batchSize = 10000;
+
+    for (let i = 0; i < batchSize; i++) {
+      const code = generateCode();
+      assert(!codes.has(code), `Duplicate code generated: ${code}`);
+      codes.add(code);
+    }
+
+    assert.strictEqual(codes.size, batchSize);
+  });
+});
+
+test('Short-code validation - isValidCode', async (t) => {
+  await t.test('accepts valid 7-char base62 code', () => {
+    assert.strictEqual(isValidCode('AbC1234'), true);
+  });
+
+  await t.test('accepts all alphabet characters', () => {
+    const fullAlphabet = CODE_ALPHABET.slice(0, CODE_LENGTH).padEnd(CODE_LENGTH, 'A');
+    assert.strictEqual(isValidCode(fullAlphabet), true);
+  });
+
+  await t.test('rejects non-string', () => {
+    assert.strictEqual(isValidCode(123), false);
+    assert.strictEqual(isValidCode(null), false);
+    assert.strictEqual(isValidCode(undefined), false);
+  });
+
+  await t.test('rejects wrong length (too short)', () => {
+    assert.strictEqual(isValidCode('AbC123'), false);
+  });
+
+  await t.test('rejects wrong length (too long)', () => {
+    assert.strictEqual(isValidCode('AbC12345'), false);
+  });
+
+  await t.test('rejects empty string', () => {
+    assert.strictEqual(isValidCode(''), false);
+  });
+
+  await t.test('rejects characters outside alphabet', () => {
+    assert.strictEqual(isValidCode('AbC123!'), false);
+    assert.strictEqual(isValidCode('AbC123 '), false);
+    assert.strictEqual(isValidCode('AbC123-'), false);
+  });
+
+  await t.test('rejects codes with special characters', () => {
+    assert.strictEqual(isValidCode('AbC@234'), false);
   });
 });
