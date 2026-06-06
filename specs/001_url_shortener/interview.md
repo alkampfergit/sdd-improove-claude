@@ -47,3 +47,22 @@
 
 ### Stop condition met
 All P1 scenarios testable; ≥3 measurable success criteria available; no major scope ambiguity. Remaining minor unknowns (short-code length/charset, exact JSON field names) are implementation/plan concerns, left to the `plan` skill. Spec drafted.
+
+---
+
+## Technical questions
+
+### TQ1 — HTTP framework
+**Reasoning shown:** Constitution lists "Express (or Fastify)"; Express = ubiquitous/simplest with broad supertest examples, Fastify = faster + built-in schema validation. Both meet the p95<200ms budget.
+**Question:** The constitution lists "Express (or Fastify)" — which HTTP framework should the thin web layer use?
+**Answer:** Express
+
+### TQ2 — Short-code generation strategy
+**Reasoning shown:** Random base62 + UNIQUE-constraint retry (non-enumerable, idempotent reuse via normalized-URL lookup) vs sequential counter→base62 (no retry, shortest, but enumerable and leaks creation order).
+**Question:** How should auto-generated short codes be produced? (codes must be unique — FR-009, and never recycled — FR-006)
+**Answer:** Random base62, retry on collision
+
+### TQ3 — Short-code length / alphabet
+**Reasoning shown:** 6 chars (~56B), 7 chars (~3.5T), or 8 chars (~218T) from the [A-Za-z0-9] alphabet; longer = more collision headroom, marginally longer links.
+**Question:** What length and alphabet for the generated short code?
+**Answer:** 7 chars, base62
