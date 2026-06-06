@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db/db.js';
 import { createLinksRepository } from './db/links-repo.js';
@@ -13,6 +14,12 @@ const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..', 'web', 'dist');
 
 function main() {
+  // Ensure data directory exists
+  const dataDir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
   // Open database
   const db = openDb(DB_PATH);
   console.log(`Connected to database: ${DB_PATH}`);

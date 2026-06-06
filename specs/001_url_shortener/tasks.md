@@ -86,7 +86,7 @@
 
 ## T-11 — React SPA: create form + links list
 
-- [ ] **Executed** — tick when `T-11`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-11`'s acceptance test passes and the work is committed
 - **Files touched:** `web/index.html`, `web/src/main.jsx`, `web/src/App.jsx`, `vite.config.js`, `package.json` (`build` script)
 - **Acceptance test:** manual — `npm run build` emits `web/dist`; with the server running, the form POSTs a URL and renders the returned short link, and the list view shows created links with their code + original URL
 - **Depends on:** T-10
