@@ -164,13 +164,28 @@ If the sweep finds nothing, say so explicitly in your handoff message ("post-dra
 
 If the sweep finds one or more deviations and an ADR is the right resolution, hand off to the `adr` skill **now**, before Step 6. The plan's `Constitution check` and `ADRs referenced` sections must be updated to cite the resulting ADR(s) once Accepted — same flow as Step 1b.
 
-### Step 6 — Hand off
+### Step 6 — Dispatch the independent evaluator (automatic, before hand-off)
 
-Tell the user the plan is written and offer:
+The author of an artifact is structurally the worst auditor of it (the same reason Step 5b plus `constitution-check` exist). So as soon as `plan.md` is written and any ADRs from Steps 1b/2/5b are resolved, automatically obtain a fresh-context second opinion — do not wait for the user to ask.
+
+Spawn the **`sdd-evaluator` subagent** (read-only, its own isolated context and `opus` reasoning) via the Agent/Task tool. In its prompt:
+
+- Name the folder explicitly: `Evaluate the SDD round in specs/<feature-name>/.`
+- Tell it the mode: at this point `tasks.md` does not exist yet, so instruct it to run in **spec + plan mode** — score `spec.md` + `plan.md` and the Spec → Plan handoff, and mark the tasks-dependent rows "not yet written" rather than failing them.
+
+The subagent returns a self-contained evaluation (overall 1-10 vote, per-section votes, blocking problems, and concrete suggestions). It is independent by construction: it never saw your drafting reasoning, and being read-only it cannot edit the plan — it only judges it. Relay its returned evaluation to the user verbatim under a short heading, then continue to the hand-off.
+
+If the evaluator reports a **blocking problem** (constitution/ADR violation or plan-not-adherent-to-spec) or an overall vote of 4 or below, do not present the plan as ready: summarize what it flagged and offer to revise `plan.md` (re-running the relevant gate) before the user moves on to `tasks`.
+
+Do not pull the evaluator's file reads or rubric reasoning into this thread — carry only the returned evaluation. The point of using a subagent here is to keep that work out of the planning context while still getting the audit.
+
+### Step 7 — Hand off
+
+Tell the user the plan is written, surface the Step 6 evaluation, and offer:
 
 1. **Read the `Architectural changes` and `Risks` sections carefully.** Those are where decisions get baked in. Push back on anything you disagree with before approving.
-2. Recommended: run the `constitution-check` skill on `plan.md` before decomposing — it audits the plan against the constitution + accepted ADRs and catches speculative design that the plan-writing model rationalized. The Step 5b sweep is your own pass; `constitution-check` is the independent fresh-context audit. Both are worth running because the author of an artifact is structurally the worst auditor of it.
-3. Run the `tasks` skill to decompose this plan into atomic implementation tasks.
+2. **Act on the `sdd-evaluator` result from Step 6.** That independent audit already ran automatically — point the user at its overall vote, blocking problems, and highest-leverage suggestions, and offer to apply any fixes before they decompose. For a separate, narrower compliance-only pass, the `constitution-check` skill audits `plan.md` against the constitution + accepted ADRs; it overlaps with but does not replace the evaluator's broader review.
+3. Run the `tasks` skill to decompose this plan into atomic implementation tasks. After tasks exist, the `sdd-evaluator` can be re-run in full-round mode for a complete spec + plan + tasks audit.
 
 ## What this skill is NOT for
 
