@@ -38,7 +38,7 @@
 
 ## T-05 — DB: links repository
 
-- [ ] **Executed** — tick when `T-05`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-05`'s acceptance test passes and the work is committed
 - **Files touched:** `src/db/links-repo.js`, `test/repo.test.js`
 - **Acceptance test:** `test/repo.test.js` — `insertLink` persists a row; `findByCode` and `findByTarget` round-trip it; `listAll` returns all rows (and `[]` when empty); a duplicate `target_url` insert raises the UNIQUE constraint error
 - **Depends on:** T-04
