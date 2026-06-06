@@ -13,7 +13,7 @@ export class LinksService {
     const normalized = normalizeUrl(inputUrl);
 
     // Check if this URL has already been shortened
-    const existingLink = this.repo.findByTarget(normalized);
+    let existingLink = this.repo.findByTarget(normalized);
     if (existingLink) {
       return {
         code: existingLink.short_code,
@@ -40,12 +40,28 @@ export class LinksService {
           isNewCode: true,
         };
       } catch (error) {
-        if (error.message.includes('UNIQUE constraint failed') && error.message.includes('short_code')) {
-          // Collision on short_code, retry
-          lastError = error;
-          continue;
+        if (error.message.includes('UNIQUE constraint failed')) {
+          if (error.message.includes('short_code')) {
+            // Collision on short_code, retry
+            lastError = error;
+            continue;
+          } else if (error.message.includes('target_url')) {
+            // Race condition: another concurrent request inserted this URL first
+            // Re-read and return the winning code
+            existingLink = this.repo.findByTarget(normalized);
+            if (existingLink) {
+              return {
+                code: existingLink.short_code,
+                url: existingLink.target_url,
+                shortUrl: this._buildShortUrl(existingLink.short_code),
+                isNewCode: false,
+              };
+            }
+            // Should not reach here; if constraint failed, the row must exist
+            throw error;
+          }
         }
-        // Other error (e.g., target_url UNIQUE constraint from a race)
+        // Other error, rethrow
         throw error;
       }
     }

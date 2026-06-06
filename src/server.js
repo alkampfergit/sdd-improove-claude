@@ -37,8 +37,22 @@ function main() {
     console.log(`Static files: ${STATIC_DIR}`);
   });
 
-  // Graceful shutdown
+  // Handle server startup errors
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use`);
+    } else {
+      console.error('Server error:', err);
+    }
+    process.exit(1);
+  });
+
+  // Graceful shutdown with guard flag to prevent double-close
+  let isShuttingDown = false;
+
   process.on('SIGTERM', () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log('SIGTERM received, shutting down gracefully');
     server.close(() => {
       db.close();
@@ -47,6 +61,8 @@ function main() {
   });
 
   process.on('SIGINT', () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log('SIGINT received, shutting down gracefully');
     server.close(() => {
       db.close();
