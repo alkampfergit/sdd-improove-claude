@@ -64,6 +64,8 @@ Output to `specs/<feature-name>/tasks.md` with this structure.
 
 Every task **must** lead with a checkbox (`- [ ]`). This is the execution marker: the implementer flips it to `- [x]` once the task is done. It uses GitHub task-list syntax so it renders as a real, tickable checkbox and gives an at-a-glance view of progress through the feature. Always emit it unchecked (`- [ ]`) — writing tasks is not the same as executing them.
 
+**Do not commit to git.** Write `tasks.md` to disk and stop there — no `git add`, no `git commit`, no branch creation. Committing the artifact is the user's call; they may want to review or edit `tasks.md` first. Even if the user's request implied "finish the tasks step," that does not include a commit. Leave the file as an uncommitted working-tree change.
+
 ```markdown
 # Tasks: <Feature Name>
 
@@ -96,9 +98,15 @@ T-01 ─┬─ T-02 ──┐
 ```
 ```
 
-### Step 7 — Hand off
+### Step 7 — Evaluate the round
 
-Tell the user the task list is committed and offer:
+Before handing off, spawn the **`sdd-evaluator` subagent** (via the Agent tool, `subagent_type: "sdd-evaluator"`) to independently score the completed round — `spec.md` + `plan.md` + the `tasks.md` you just wrote. It runs in a fresh context, so it catches gaps your own context is blind to. Pass it the feature folder path and ask for scores, blocking problems, and concrete improvements.
+
+Relay its findings to the user. If it flags blocking problems in `tasks.md`, fix them and re-evaluate before handing off. The evaluator is read-only — it never edits the artifacts, so any fixes are yours to make.
+
+### Step 8 — Hand off
+
+Tell the user the task list is written to `specs/<feature-name>/tasks.md` as an **uncommitted** change (you did not commit it — see Step 6), summarize the `sdd-evaluator` result, and offer:
 
 1. **Review T-01.** Does it have zero dependencies and a clear acceptance test? If yes, ready to implement.
 2. Recommended: run the `constitution-check` skill on `tasks.md` before starting implementation — it audits each task's acceptance test against spec FR/SCs and catches "good hygiene" additions (placeholder endpoints, premature files, defensive scaffolding) that the tasks-writing model added without a spec citation.

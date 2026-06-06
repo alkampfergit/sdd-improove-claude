@@ -80,13 +80,13 @@ CREATE TABLE IF NOT EXISTS links (
 
 ### GET /:code — resolve and redirect (FR-004, FR-005)
 - **301 Moved Permanently:** `Location: <target_url>` for an existing code (FR-004). No write on this path (hot path, SC-001).
-- **404 Not Found:** code does not exist, or is malformed (chars/length outside the code alphabet) — no redirect issued (FR-005, edge cases).
+- **404 Not Found:** code does not exist, **or** is malformed (chars/length outside the code alphabet) — both cases return 404 with no redirect issued (FR-005, edge cases). The redirect handler owns every single-segment top-level path, so a malformed code lands on 404 rather than falling through to the SPA.
 
 ### GET /api/links — list all links (FR-008)
 - **200 OK:** `[ { "code": "...", "url": "...", "shortUrl": "...", "createdAt": "..." }, ... ]`; empty array when none exist (Story 2 scenario 2).
 
 ### Static SPA
-- `GET /` and unmatched non-API, non-code paths serve `web/dist/index.html` (constitution: one bundle).
+- `GET /` and the built static assets (e.g. `web/dist/assets/*`) serve the React app (constitution: one bundle). The SPA is a single create-form + links-list page with **no client-side router**, so there is no broad catch-all over arbitrary paths — every non-API, single-segment path is a short-code lookup, not an SPA route.
 
 ## Algorithms / key decisions
 
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS links (
 
 **Redirect status & hot path (FR-004, SC-001).** 301 permanent (interview Q5) is cacheable by clients/proxies, reducing repeat load and aligning with "URLs are forever". The lookup is a synchronous `better-sqlite3` PK read with no side effects, so server-side latency stays well under the p95 < 200 ms target (SC-001, interview Q6).
 
-**Route precedence.** Express matches `/api/*` first, then `GET /:code` constrained by a regex over the 7-char base62 alphabet, then the SPA catch-all. A path that doesn't match the code pattern falls through to the SPA rather than to the redirect handler; a code-shaped path with no row returns 404 (FR-005). This avoids the redirect route shadowing React client routes.
+**Route precedence.** Express matches `/api/*` first, then the static assets and `GET /` (SPA), then `GET /:code` as the single-segment handler for everything else. Because the SPA has no client-side router (see Static SPA), the redirect handler owns every other top-level path: it resolves the code if a row exists (301, FR-004) and otherwise returns 404 — whether the code is simply unknown **or** malformed/outside the alphabet (FR-005, spec edge cases lines 71–72). The redirect handler never falls through to the SPA, so the spec's "malformed code → 404" guarantee holds and there are no React client routes for it to shadow.
 
 ## Dependencies
 
@@ -125,7 +125,7 @@ Single Node 20 process, single deployable (constitution). Build step: `npm run b
 
 | ID | Risk | Mitigation |
 |----|------|------------|
-| R1 | `GET /:code` redirect route shadows React SPA client routes | Constrain the redirect route to the 7-char base62 code regex; non-matching paths fall through to the SPA catch-all (see Route precedence). |
+| R1 | `GET /:code` redirect route shadows React SPA client routes | The SPA has no client-side router, so there are no client routes to shadow; the SPA is served only at `/` plus static assets, and every other single-segment path is owned by the redirect handler (301 if found, else 404 for unknown or malformed). See Route precedence. |
 | R2 | `better-sqlite3` native build fails on the deploy target | Pin Node 20 LTS; rely on prebuilt binaries or ensure a build toolchain is present in the deploy image; covered by an integration test that opens a real DB. |
 | R3 | Collision-retry exhaustion at large scale | 7-char space (~3.5 × 10¹²) makes collisions vanishingly rare; bounded retry (5) then a 500-class error rather than a silent remap (never violates FR-006). Accepted. |
 | R4 | Over-aggressive normalization changes a URL's meaning | Conservative rules only (scheme/host case, default port, trailing-slash collapse); path and query preserved verbatim. Unit-tested against Story 3 scenario 2. |
