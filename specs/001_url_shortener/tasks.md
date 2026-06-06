@@ -6,7 +6,7 @@
 
 ## T-01 — Project skeleton + test config
 
-- [ ] **Executed** — tick when `T-01`'s acceptance test passes and the work is committed
+- [x] **Executed** — tick when `T-01`'s acceptance test passes and the work is committed
 - **Files touched:** `package.json`, `.gitignore`, `test/smoke.test.js`
 - **Acceptance test:** `test/smoke.test.js` — a trivial `node:test` assertion proves the runner is wired and `npm test` exits 0
 - **Depends on:** (none)
