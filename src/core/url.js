@@ -38,8 +38,14 @@ export function normalizeUrl(raw) {
     port = '';
   }
 
-  // Build normalized URL: preserve path and query verbatim, collapse trailing slash only at root
-  const pathQueryFragment = url.pathname + url.search + url.hash;
+  // Normalize pathname: strip trailing slash except at root
+  let pathname = url.pathname;
+  if (pathname !== '/' && pathname.endsWith('/')) {
+    pathname = pathname.slice(0, -1);
+  }
+
+  // Build normalized URL
+  const pathQueryFragment = pathname + url.search + url.hash;
   const authority = port ? `${host}:${port}` : host;
   const normalized = `${scheme}://${authority}${pathQueryFragment}`;
 

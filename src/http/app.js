@@ -38,7 +38,13 @@ export function createApp({ service, staticDir }) {
   // GET /api/links — list all links
   app.get('/api/links', (req, res) => {
     const links = service.listLinks();
-    res.json(links);
+    // Build full shortUrl with protocol and host
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const enrichedLinks = links.map(link => ({
+      ...link,
+      shortUrl: `${origin}/${link.code}`,
+    }));
+    res.json(enrichedLinks);
   });
 
   // GET / — serve SPA

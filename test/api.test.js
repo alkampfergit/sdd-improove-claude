@@ -126,6 +126,35 @@ test('HTTP API - POST /api/links', async (t) => {
     assert(response.body.shortUrl.includes(response.body.code));
   });
 
+  await t.test('POST with trailing slash normalizes to same code as without (FR-007)', async () => {
+    const urlWithoutSlash = 'https://example.com/api/endpoint';
+    const urlWithSlash = 'https://example.com/api/endpoint/';
+
+    const response1 = await request(app)
+      .post('/api/links')
+      .send({ url: urlWithoutSlash })
+      .expect(201);
+
+    const response2 = await request(app)
+      .post('/api/links')
+      .send({ url: urlWithSlash })
+      .expect(200);
+
+    assert.strictEqual(response1.body.code, response2.body.code, 'Same code for URLs differing only by trailing slash');
+    assert.strictEqual(response2.body.url, response1.body.url, 'Normalized URL stored');
+  });
+
+  await t.test('shortUrl has full protocol and host format', async () => {
+    const response = await request(app)
+      .post('/api/links')
+      .send({ url: 'https://example.com/format-test' })
+      .expect(201);
+
+    assert(response.body.shortUrl.startsWith('http://'), 'shortUrl should include protocol');
+    assert(response.body.shortUrl.includes('localhost') || response.body.shortUrl.includes('127.0.0.1'), 'shortUrl should include host');
+    assert(response.body.shortUrl.includes(response.body.code), 'shortUrl should include code');
+  });
+
   await t.test('cleanup', () => {
     closeDb(db);
   });
@@ -265,6 +294,27 @@ test('HTTP API - GET /api/links list', async (t) => {
     assert.ok(link.url);
     assert.ok(link.shortUrl);
     assert.ok(link.createdAt);
+  });
+
+  await t.test('GET /api/links shortUrl has full protocol and host format', async () => {
+    // Create a link first
+    const createResponse = await request(app)
+      .post('/api/links')
+      .send({ url: 'https://list-format-test.com' })
+      .expect(201);
+
+    // Get the list
+    const listResponse = await request(app)
+      .get('/api/links')
+      .expect(200);
+
+    const listLink = listResponse.body.find(l => l.code === createResponse.body.code);
+    assert.ok(listLink, 'Link should be in list');
+
+    // Verify shortUrl format in list response has protocol and host
+    assert(listLink.shortUrl.startsWith('http://') || listLink.shortUrl.startsWith('https://'), 'shortUrl should start with protocol');
+    assert(listLink.shortUrl.includes(listLink.code), 'shortUrl should include code');
+    assert(!listLink.shortUrl.startsWith('//'), 'shortUrl should not be protocol-relative (should have full protocol)');
   });
 
   await t.test('cleanup', () => {

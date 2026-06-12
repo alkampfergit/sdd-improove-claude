@@ -129,6 +129,35 @@ test('URL normalization - normalizeUrl', async (t) => {
     const url2 = normalizeUrl('https://example.com/page');
     assert.strictEqual(url1, url2);
   });
+
+  await t.test('strips trailing slash from non-root paths', () => {
+    const withSlash = normalizeUrl('https://example.com/api/users/');
+    const withoutSlash = normalizeUrl('https://example.com/api/users');
+    assert.strictEqual(withSlash, withoutSlash);
+  });
+
+  await t.test('normalizes URLs differing only by trailing slash (FR-007)', () => {
+    const url1 = normalizeUrl('https://example.com/path/to/resource');
+    const url2 = normalizeUrl('https://example.com/path/to/resource/');
+    assert.strictEqual(url1, url2, 'Trailing slash should be normalized away');
+  });
+
+  await t.test('preserves root slash even with trailing slash', () => {
+    const result = normalizeUrl('https://example.com/');
+    assert.strictEqual(result, 'https://example.com/');
+  });
+
+  await t.test('preserves query string after stripping trailing slash', () => {
+    const result = normalizeUrl('https://example.com/path/?key=value');
+    assert(result.includes('?key=value'));
+    assert(!result.includes('path/?'));
+  });
+
+  await t.test('preserves hash after stripping trailing slash', () => {
+    const result = normalizeUrl('https://example.com/path/#section');
+    assert(result.includes('#section'));
+    assert(!result.includes('path/#'));
+  });
 });
 
 test('Short-code generation - generateCode', async (t) => {
